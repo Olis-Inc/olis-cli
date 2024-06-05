@@ -1,9 +1,19 @@
 #!/usr/bin/env node
 import { program } from "commander";
+import init from "../src/commands/init";
+import secrets from "../src/commands/secrets";
+import deployment from "../src/commands/deployment";
+import env from "../src/commands/env";
 
-program.option("-n, --name <type>", "Add your name").action((options) => {
-  // eslint-disable-next-line no-console
-  console.log(`Hey homie, señorr`, options.name);
-});
+program
+  .name("Olis CLI")
+  .description(
+    "A command-line interface app that helps get your projects up to speed without leaving your code editor",
+  )
+  .version("0.0.0")
+  .addCommand(init.getCommand())
+  .addCommand(secrets.getCommand())
+  .addCommand(deployment.getCommand())
+  .addCommand(env.getCommand());
 
 program.parse(process.argv);
