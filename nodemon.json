@@ -1,0 +1,6 @@
+{
+  "watch": ["src", "bin"],
+  "ext": ".ts",
+  "delay": "3000",
+  "exec": "yarn start:dev" 
+}
