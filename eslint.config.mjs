@@ -25,6 +25,9 @@ export default [
         node: {
           extensions: [".js", ".jsx", ".ts", ".tsx"],
         },
+        typescript: {
+          project: "./tsconfig.json",
+        },
       },
     },
     ignorePatterns: ["node_modules", "dist"],
@@ -33,6 +36,7 @@ export default [
     rules: {
       "prettier/prettier": ["error"],
       "import/no-extraneous-dependencies": "off",
+      "no-restricted-syntax": "off",
       "import/extensions": [
         "error",
         "ignorePackages",
