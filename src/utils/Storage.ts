@@ -4,8 +4,8 @@ import { APP_FOLDER } from "./constants";
 class Storage {
   private store: Configstore;
 
-  constructor(scope: "app" | "global" = "app") {
-    this.store = new Configstore(scope === "app" ? APP_FOLDER : "global");
+  constructor(namespace: "app" | "global" | "secret" = "app") {
+    this.store = new Configstore(namespace === "app" ? APP_FOLDER : namespace);
   }
 
   get(key: string) {

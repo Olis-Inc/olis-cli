@@ -37,6 +37,7 @@ export default [
       "prettier/prettier": ["error"],
       "import/no-extraneous-dependencies": "off",
       "no-restricted-syntax": "off",
+      "no-shadow": "off",
       "import/extensions": [
         "error",
         "ignorePackages",

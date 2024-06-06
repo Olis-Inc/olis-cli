@@ -1,5 +1,5 @@
 /* eslint-disable no-await-in-loop */
-import f, { promises as fs } from "fs";
+import f, { promises as fs, constants } from "fs";
 import path from "path";
 import yaml from "js-yaml";
 import prettier from "prettier";
@@ -49,25 +49,15 @@ class File {
     }
   }
 
-  private static async writeToJsonFile(filePath: string, data: unknown) {
+  static async writeTo(filePath: string, data: unknown, parser?: string) {
     try {
-      const formattedData = await prettier.format(JSON.stringify(data), {
-        parser: "json",
-      });
-      await fs.writeFile(path.resolve(filePath), formattedData, {
-        flag: "w",
-        encoding: this.encoding,
-      });
-      return Promise.resolve();
-    } catch (error) {
-      return Promise.reject(error);
-    }
-  }
-
-  private static async writeToRcFile(filePath: string, data: unknown) {
-    try {
-      const formattedData = JSON.stringify(data, null, 2);
-      await fs.writeFile(path.resolve(filePath), formattedData, {
+      let formattedData = data;
+      if (parser) {
+        formattedData = await prettier.format(JSON.stringify(data), {
+          parser,
+        });
+      }
+      await fs.writeFile(path.resolve(filePath), formattedData as string, {
         flag: "w",
         encoding: this.encoding,
       });
@@ -111,7 +101,7 @@ class File {
 
       switch (extension) {
         case ".json":
-          return await this.writeToJsonFile(filePath, data);
+          return await this.writeTo(filePath, data, "json");
 
         case ".yaml":
         case ".yml":
@@ -119,13 +109,23 @@ class File {
 
         default:
           if (name.startsWith(".") && name.endsWith("rc")) {
-            return await this.writeToRcFile(filePath, data);
+            return await this.writeTo(filePath, data, "json");
           }
 
           throw new Error("Unsupported file extension");
       }
     } catch (error) {
       throw new Error(`Could not write to file, ${error}`);
+    }
+  }
+
+  static async copy(source: string, destination: string) {
+    try {
+      await fs.copyFile(source, destination, constants.COPYFILE_FICLONE);
+      return Promise.resolve();
+    } catch (error) {
+      this.logger.error(`Error copying file, ${error}`);
+      return Promise.reject(error);
     }
   }
 }

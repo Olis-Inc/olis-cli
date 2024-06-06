@@ -11,17 +11,17 @@ class Config {
   private logger = new Logger();
 
   private baseConfig: AppConfig = {
-    language: "",
+    framework: undefined,
     name: APP_FOLDER,
-    hostname: "",
-    subdomain: "",
-    template: "",
+    hostname: undefined,
+    subdomain: undefined,
     environmentFile: ".env",
     stateStorage: "local",
     compute: {},
-    architecture: "",
+    architecture: undefined,
     infrastructure: true,
     middleware: [],
+    manageRepository: true,
   };
 
   defaultFileLocations = [
@@ -62,9 +62,6 @@ class Config {
       ...data,
       ...config,
     });
-
-    // Use chalk
-    this.logger.log("Initialization successful! 💫");
   }
 }
 

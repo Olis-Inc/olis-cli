@@ -11,23 +11,29 @@ type Middleware = {
   [key in MiddlewareType]?: string;
 } & { type: string; default?: string };
 
+export enum Framework {
+  Javascript = "Javascript",
+  ReactNative = "ReactNative",
+}
+
 export interface AppConfig {
-  language: string;
+  framework?: string;
   name: string;
-  hostname: string;
-  subdomain: string;
-  template: string;
+  hostname?: string;
+  subdomain?: string;
+  // template: string; // Not quite ready for this
   environmentFile: string;
   stateStorage: string;
   compute: Compute;
-  architecture: string;
+  architecture?: string;
   infrastructure: boolean;
   middleware: Array<Middleware>;
+  manageRepository: boolean;
 }
 
 export interface ConfigOption extends Pick<Option, "flags" | "description"> {
   name: keyof AppConfig;
-  type?: "string" | "list" | "rawlist";
+  type?: "string" | "list" | "rawlist" | "confirm";
   prompt?: {
     message: string;
   };

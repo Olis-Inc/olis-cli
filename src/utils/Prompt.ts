@@ -6,7 +6,10 @@ class Prompt {
   async ask(questions: QuestionCollection): Promise<Answers> {
     try {
       const answers = await this.prompt(questions);
-      return Promise.resolve(answers);
+      const filteredAnswers = Object.fromEntries(
+        Object.entries(answers).filter(([, value]) => value !== ""),
+      );
+      return Promise.resolve(filteredAnswers);
     } catch (error) {
       return Promise.reject(error);
     }

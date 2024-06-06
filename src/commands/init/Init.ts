@@ -1,20 +1,21 @@
 /* eslint-disable no-restricted-syntax */
 import { Option } from "commander";
+import VCS from "@src/vcs";
 import BaseCommand from "../BaseCommand";
 import { QuestionCollection } from "../../utils/Prompt";
 import { APP_FOLDER } from "../../utils/constants";
-import { ConfigOption } from "../../types/config";
+import { AppConfig, ConfigOption, Framework } from "../../types/config";
 
 class Init extends BaseCommand {
   private defaultAppName = APP_FOLDER;
 
   private options: Array<ConfigOption> = [
     {
-      name: "language",
+      name: "framework",
       type: "list",
-      flags: "-lang, --language [string]",
-      description: "Language associated with App",
-      choices: ["NodeJS", "React"],
+      flags: "-fw, --framework [string]",
+      description: "Framework associated with App",
+      choices: Object.values(Framework),
       prompt: {
         message: "What language are you developing with?",
       },
@@ -35,17 +36,6 @@ class Init extends BaseCommand {
         message: "What is the Subdomain of your app?",
       },
     },
-    {
-      name: "template",
-      flags: "-t, --template [string]",
-      description: "Template of app to clone",
-    },
-    // {
-    //   flags: "-repo, --repository [string]",
-    //   description: "Repository of app",
-    //   attributeName: () => "repository",
-    //   prompt: true,
-    // },
     {
       name: "infrastructure",
       flags: "-infra, --infrastructure [string]",
@@ -69,6 +59,15 @@ class Init extends BaseCommand {
       flags: "-a, --architecture [string]",
       description: "Infrastructural Architecture of App/Project",
     },
+    {
+      type: "confirm",
+      name: "manageRepository",
+      flags: "-repo, --repository [boolean]",
+      description: "Whether to manage your repository for you",
+      prompt: {
+        message: "Would you like to manage your repo automatically?",
+      },
+    },
   ];
 
   constructor() {
@@ -91,7 +90,7 @@ class Init extends BaseCommand {
     const config = this.config.getConfig();
     return this.options.map((option) => ({
       ...option,
-      default: config[option.name] || undefined,
+      default: config[option.name],
     }));
   }
 
@@ -109,10 +108,8 @@ class Init extends BaseCommand {
     }
   }
 
-  private getQuestions(options: Record<string, unknown>): QuestionCollection {
-    const updatedOptions = this.getOptions();
-
-    return updatedOptions
+  private getQuestions(options: Partial<AppConfig>): QuestionCollection {
+    return this.getOptions()
       .filter((option) => option.prompt)
       .map((option) => ({
         type: option.type,
@@ -123,17 +120,27 @@ class Init extends BaseCommand {
       }));
   }
 
-  async action(name: string, cliOptions: Record<string, unknown>) {
+  async action(name: string, cliOptions: Partial<AppConfig>) {
     try {
-      const questions = this.getQuestions(cliOptions);
+      const questions = this.getQuestions({
+        ...cliOptions,
+        name,
+      });
       const answers = await this.prompt.ask(questions);
-      // Maybe check respository here
-      // Also check for template
+      if (answers.manageRepository) {
+        await VCS.setupRepository(name);
+      }
 
-      this.config.update({
+      const config: Partial<AppConfig> = {
         name,
         ...answers,
-      });
+      };
+
+      await this.config.update(config);
+      await this.buildManager.makeBuildFile(config.framework as Framework);
+
+      // Use chalk
+      this.logger.log("Initialization successful! 💫");
     } catch (error) {
       this.logger.error(error);
     }

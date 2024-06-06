@@ -1,4 +1,5 @@
 import { Command } from "commander";
+import BuildManager from "@src/build";
 import Storage from "../utils/Storage";
 import Logger from "../utils/Logger";
 import Prompt from "../utils/Prompt";
@@ -14,6 +15,8 @@ class BaseCommand {
   storage = new Storage();
 
   config = config;
+
+  buildManager = new BuildManager();
 
   constructor(cmd: string) {
     if (new.target === BaseCommand) {
