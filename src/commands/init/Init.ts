@@ -85,16 +85,8 @@ class Init extends BaseCommand {
     });
   }
 
-  private getOptions() {
-    const config = this.config.getConfig();
-    return this.options.map((option) => ({
-      ...option,
-      default: config[option.name],
-    }));
-  }
-
   private addCliOptions() {
-    const options = this.getOptions();
+    const { options } = this;
     for (const option of options) {
       const cliOption = new Option(option.flags, option.description).default(
         option.default,
