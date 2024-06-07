@@ -14,6 +14,8 @@ class BaseCommand {
 
   storage = new Storage();
 
+  secureStorage = new Storage("secrets");
+
   config = config;
 
   buildManager = new BuildManager();

@@ -1,10 +1,7 @@
 import { Command } from "commander";
-import Storage from "@src/utils/Storage";
 import BaseCommand from "../BaseCommand";
 
 class Secrets extends BaseCommand {
-  private secureStorage = new Storage("secrets");
-
   constructor() {
     super("secrets");
 

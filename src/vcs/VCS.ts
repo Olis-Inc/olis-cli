@@ -1,10 +1,12 @@
-import { VCSProvider } from "@src/types/vcs";
+import { SyncEnvRequest, VCSProvider } from "@src/types/vcs";
 import Prompt, { QuestionCollection } from "@src/utils/Prompt";
 import Storage from "@src/utils/Storage";
 import {
   VCS_ACCESS_TOKEN_KEY,
-  VCS_REPOSITORY_KEY,
+  VCS_PROVIDER,
+  VCS_REPOSITORY,
   VCS_REPOSITORY_OWNER,
+  VCS_REPOSITORY_URL,
 } from "@src/utils/constants";
 import GitHub from "./GitHub";
 
@@ -15,7 +17,7 @@ class VCS {
 
   private static prompt = new Prompt();
 
-  private static getQuestions(name: string): QuestionCollection {
+  private static getSetupQuestions(name: string): QuestionCollection {
     return [
       {
         name: "name",
@@ -28,7 +30,7 @@ class VCS {
         type: "list",
         message: "Provider:",
         choices: Object.values(VCSProvider),
-        default: this.appStorage.get(VCS_REPOSITORY_KEY),
+        default: this.appStorage.get(VCS_REPOSITORY),
       },
       {
         name: "owner",
@@ -60,7 +62,7 @@ class VCS {
 
   static async setupRepository(name: string) {
     try {
-      const questions = this.getQuestions(name);
+      const questions = this.getSetupQuestions(name);
       const {
         provider,
         accessToken,
@@ -69,6 +71,7 @@ class VCS {
         owner,
       } = await this.prompt.ask(questions);
       this.secureStorage.set(VCS_ACCESS_TOKEN_KEY, accessToken);
+      this.appStorage.set(VCS_PROVIDER, provider);
 
       switch (provider as VCSProvider) {
         case VCSProvider.GitHub:
@@ -77,6 +80,38 @@ class VCS {
             private: isPrivate,
             owner,
           });
+          break;
+
+        default:
+          throw new Error(`Unrecognized provider, ${provider}`);
+      }
+      return Promise.resolve();
+    } catch (error) {
+      return Promise.reject(error);
+    }
+  }
+
+  static validateSetup() {
+    if (
+      this.secureStorage.get(VCS_ACCESS_TOKEN_KEY) &&
+      this.appStorage.get(VCS_REPOSITORY) &&
+      this.appStorage.get(VCS_PROVIDER) &&
+      this.appStorage.get(VCS_REPOSITORY_URL) &&
+      this.appStorage.get(VCS_REPOSITORY_OWNER)
+    ) {
+      return true;
+    }
+
+    return false;
+  }
+
+  static async syncEnv(payload: SyncEnvRequest) {
+    const provider = this.appStorage.get(VCS_PROVIDER);
+
+    try {
+      switch (provider as VCSProvider) {
+        case VCSProvider.GitHub:
+          await GitHub.syncEnv(payload);
           break;
 
         default:

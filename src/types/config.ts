@@ -1,6 +1,11 @@
 import { Option } from "commander";
 
-type Environment = "local" | "staging" | "production";
+export enum Environment {
+  local = "local",
+  staging = "staging",
+  production = "production",
+}
+
 type MiddlewareType = "database" | "cache" | "search" | "messaging" | "storage";
 
 type Compute = {

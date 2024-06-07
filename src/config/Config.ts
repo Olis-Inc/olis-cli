@@ -40,7 +40,7 @@ class Config {
     return null;
   }
 
-  getConfig() {
+  getConfig(): AppConfig {
     try {
       let data = this.baseConfig;
       const { filePath } = this;
@@ -62,6 +62,10 @@ class Config {
       ...data,
       ...config,
     });
+  }
+
+  get(key: keyof AppConfig) {
+    return this.getConfig()[key];
   }
 }
 

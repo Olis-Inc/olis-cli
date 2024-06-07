@@ -24,6 +24,15 @@ class File {
     }
   }
 
+  private static readGenericFile(filePath: string) {
+    try {
+      return f.readFileSync(path.resolve(filePath), this.encoding);
+    } catch (error) {
+      this.logger.error(error);
+      throw error;
+    }
+  }
+
   private static async readYamlFile(filePath: string) {
     try {
       const data = f.readFileSync(path.resolve(filePath), this.encoding);
@@ -75,19 +84,17 @@ class File {
       switch (extension) {
         case ".json":
           return this.readJsonFile(filePath);
-          break;
 
         case ".yaml":
         case ".yml":
           return this.readYamlFile(filePath);
-          break;
 
         default:
           if (name.startsWith(".") && name.endsWith("rc")) {
             return this.readJsonFile(filePath);
           }
 
-          throw new Error("Unsupported file extension");
+          return this.readGenericFile(filePath);
       }
     } catch (error) {
       throw new Error(`Could not read file, ${error}`);

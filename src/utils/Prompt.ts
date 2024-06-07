@@ -16,6 +16,19 @@ class Prompt {
     }
   }
 
+  async warn(message: string, defaultValue = false): Promise<boolean> {
+    const { proceed } = await this.prompt([
+      {
+        type: "confirm",
+        name: "proceed",
+        message,
+        default: defaultValue,
+      },
+    ]);
+
+    return proceed;
+  }
+
   private required(value: string, message: string) {
     if (value.trim() === "") {
       return message;

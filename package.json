@@ -25,6 +25,7 @@
     "figlet": "^1.7.0",
     "inquirer": "^8.0.0",
     "js-yaml": "^4.1.0",
+    "libsodium-wrappers": "^0.7.13",
     "ora": "^8.0.1",
     "prettier": "^3.3.1"
   },
@@ -35,6 +36,7 @@
     "@types/eslint__js": "^8.42.3",
     "@types/inquirer": "^9.0.7",
     "@types/js-yaml": "^4.0.9",
+    "@types/libsodium-wrappers": "^0.7.14",
     "@types/node": "^20.14.1",
     "eslint": "^7.32.0 || ^8.2.0",
     "eslint-config-airbnb-base": "^15.0.0",
