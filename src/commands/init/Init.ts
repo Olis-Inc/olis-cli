@@ -2,77 +2,76 @@
 import { Option } from "commander";
 import VCS from "@src/vcs";
 import BaseCommand from "../BaseCommand";
-import { QuestionCollection } from "../../utils/Prompt";
 import { APP_FOLDER } from "../../utils/constants";
-import { AppConfig, ConfigOption, Framework } from "../../types/config";
+import { AppConfig, Framework } from "../../types/config";
+
+interface InitCliOption extends Pick<Option, "flags" | "description"> {
+  name: keyof AppConfig;
+  default?: unknown;
+  choices?: Array<string>;
+}
 
 class Init extends BaseCommand {
   private defaultAppName = APP_FOLDER;
 
-  private options: Array<ConfigOption> = [
-    {
-      name: "framework",
-      type: "list",
-      flags: "-fw, --framework [string]",
-      description: "Framework associated with App",
-      choices: Object.values(Framework),
-      prompt: {
-        message: "What language are you developing with?",
-      },
-    },
-    {
-      name: "hostname",
-      flags: "-h, --hostname [string]",
-      description: "Hostname of App",
-      prompt: {
-        message: "What is the Hostname of your app?",
-      },
-    },
-    {
-      name: "subdomain",
-      flags: "-s, --subdomain [string]",
-      description: "Subdomain of App",
-      prompt: {
-        message: "What is the Subdomain of your app?",
-      },
-    },
-    {
-      name: "infrastructure",
-      flags: "-infra, --infrastructure [string]",
-      description: "Whether to add infrastructure code",
-    },
-    {
-      name: "environmentFile",
-      flags: "-env-file, --environment-file [string]",
-      description: "Whether to add infrastructure code",
-    },
-    {
-      name: "stateStorage",
-      flags: "-ss, --state-storage [stateStorage]",
-      description: "State store for infrastructure config",
-      prompt: {
-        message: "Preferred State Store?",
-      },
-    },
-    {
-      name: "architecture",
-      flags: "-a, --architecture [string]",
-      description: "Infrastructural Architecture of App/Project",
-    },
-    {
-      type: "confirm",
-      name: "manageRepository",
-      flags: "-repo, --repository [boolean]",
-      description: "Whether to manage your repository for you",
-      prompt: {
-        message: "Would you like to manage your repo automatically?",
-      },
-    },
-  ];
-
   constructor() {
     super("init");
     this.init();
+  }
+
+  get options(): Array<InitCliOption> {
+    const defaults = this.config.getConfig();
+    return [
+      {
+        name: "framework",
+        flags: "-fw, --framework [string]",
+        description: "Framework associated with App",
+        choices: Object.values(Framework),
+        default: defaults.framework,
+      },
+      {
+        name: "hostname",
+        flags: "-h, --hostname [string]",
+        description: "Hostname of App",
+        default: defaults.hostname,
+      },
+      {
+        name: "subdomain",
+        flags: "-s, --subdomain [string]",
+        description: "Subdomain of App",
+        default: defaults.subdomain,
+      },
+      {
+        name: "infrastructure",
+        flags: "-infra, --infrastructure [string]",
+        description: "Whether to add infrastructure code",
+        default: defaults.infrastructure,
+      },
+      {
+        name: "environmentFile",
+        flags: "-env-file, --environment-file [string]",
+        description: "Whether to add infrastructure code",
+        default: defaults.environmentFile,
+      },
+      {
+        name: "stateStorage",
+        flags: "-ss, --state-storage [stateStorage]",
+        description: "State store for infrastructure config",
+        default: defaults.stateStorage,
+      },
+      {
+        name: "architecture",
+        flags: "-a, --architecture [string]",
+        description: "Infrastructural Architecture of App/Project",
+        default: defaults.architecture,
+      },
+      {
+        name: "manageRepository",
+        flags: "-repo, --repository [boolean]",
+        description: "Whether to manage your repository for you",
+        default: defaults.manageRepository,
+      },
+    ];
   }
 
   private init() {
@@ -97,10 +96,11 @@ class Init extends BaseCommand {
   private addCliOptions() {
     const options = this.getOptions();
     for (const option of options) {
-      const cliOption = new Option(option.flags, option.description);
+      const cliOption = new Option(option.flags, option.description).default(
+        option.default,
+      );
 
-      cliOption.default(option.default);
-      if (option.type === "list" && option.choices) {
+      if (option.choices) {
         cliOption.choices(option.choices);
       }
 
@@ -108,24 +108,9 @@ class Init extends BaseCommand {
     }
   }
 
-  private getQuestions(options: Partial<AppConfig>): QuestionCollection {
-    return this.getOptions()
-      .filter((option) => option.prompt)
-      .map((option) => ({
-        type: option.type,
-        choices: option.choices,
-        name: option.name,
-        message: option.prompt?.message,
-        default: options[option.name] || option.default,
-      }));
-  }
-
   async action(name: string, cliOptions: Partial<AppConfig>) {
     try {
-      const questions = this.getQuestions({
-        ...cliOptions,
-        name,
-      });
+      const questions = this.config.getSetupQuestions(cliOptions);
       const answers = await this.prompt.ask(questions);
       if (answers.manageRepository) {
         await VCS.setupRepository(name);

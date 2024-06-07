@@ -1,7 +1,8 @@
 import Path from "@src/utils/Path";
 import File from "@src/utils/File";
 import { APP_FOLDER } from "@src/utils/constants";
-import { AppConfig } from "../types/config";
+import { DistinctQuestion } from "@src/utils/Prompt";
+import { AppConfig, Framework, StateStorage } from "../types/config";
 import Logger from "../utils/Logger";
 import Storage from "../utils/Storage";
 
@@ -16,7 +17,7 @@ class Config {
     hostname: undefined,
     subdomain: undefined,
     environmentFile: ".env",
-    stateStorage: "local",
+    stateStorage: StateStorage.local,
     compute: {},
     architecture: undefined,
     infrastructure: true,
@@ -30,6 +31,44 @@ class Config {
     `${Path.cwd}/olisconfig.yaml`,
     `${Path.cwd}/olisconfig.yml`,
   ];
+
+  // eslint-disable-next-line class-methods-use-this
+  getSetupQuestions(
+    defaults: Partial<AppConfig>,
+  ): Array<DistinctQuestion & { name: keyof AppConfig }> {
+    return [
+      {
+        name: "framework",
+        type: "list",
+        choices: Object.values(Framework),
+        message: "What language are you developing with?",
+        default: defaults.framework,
+      },
+      {
+        name: "hostname",
+        message: "What is the Hostname of your app?",
+        default: defaults.hostname,
+      },
+      {
+        name: "subdomain",
+        message: "What is the Subdomain of your app?",
+        default: defaults.subdomain,
+      },
+      {
+        name: "stateStorage",
+        type: "list",
+        message: "Preferred State Store?",
+        default: defaults.stateStorage,
+        choices: Object.values(StateStorage),
+      },
+      {
+        name: "manageRepository",
+        type: "confirm",
+        message: "Would you like to manage your repo automatically?",
+        default: defaults.manageRepository,
+      },
+    ];
+  }
 
   get filePath() {
     for (const filePath of this.defaultFileLocations) {

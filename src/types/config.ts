@@ -1,5 +1,3 @@
-import { Option } from "commander";
-
 export enum Environment {
   local = "local",
   staging = "staging",
@@ -21,6 +19,10 @@ export enum Framework {
   ReactNative = "ReactNative",
 }
 
+export enum StateStorage {
+  local = "local",
+}
+
 export interface AppConfig {
   framework?: string;
   name: string;
@@ -28,20 +30,10 @@ export interface AppConfig {
   subdomain?: string;
   // template: string; // Not quite ready for this, but you can create from template github
   environmentFile: string;
-  stateStorage: string;
+  stateStorage: StateStorage;
   compute: Compute;
   architecture?: string;
   infrastructure: boolean;
   middleware: Array<Middleware>;
   manageRepository: boolean;
-}
-
-export interface ConfigOption extends Pick<Option, "flags" | "description"> {
-  name: keyof AppConfig;
-  type?: "string" | "list" | "rawlist" | "confirm";
-  prompt?: {
-    message: string;
-  };
-  default?: unknown;
-  choices?: Array<string>;
 }

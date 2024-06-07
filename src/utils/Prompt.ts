@@ -1,5 +1,9 @@
 /* eslint-disable class-methods-use-this */
-import inquirer, { Answers, QuestionCollection } from "inquirer";
+import inquirer, {
+  Answers,
+  QuestionCollection,
+  DistinctQuestion,
+} from "inquirer";
 
 class Prompt {
   private prompt = inquirer.createPromptModule();
@@ -44,4 +48,4 @@ class Prompt {
 }
 
 export default Prompt;
-export { QuestionCollection };
+export { QuestionCollection, DistinctQuestion };
