@@ -15,6 +15,10 @@ class Storage {
   set(key: string, value: unknown) {
     return this.store.set(key, value);
   }
+
+  delete(key: string) {
+    return this.store.delete(key);
+  }
 }
 
 export default Storage;

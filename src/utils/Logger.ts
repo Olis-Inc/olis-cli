@@ -5,6 +5,11 @@ class Logger {
     console.log(payload);
   }
 
+  success(payload: unknown) {
+    // eslint-disable-next-line no-console
+    console.log(payload);
+  }
+
   error(error: unknown) {
     // eslint-disable-next-line no-console
     console.error(error);
