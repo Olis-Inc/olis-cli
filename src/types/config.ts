@@ -21,7 +21,7 @@ export interface AppConfig {
   name: string;
   hostname?: string;
   subdomain?: string;
-  // template: string; // Not quite ready for this
+  // template: string; // Not quite ready for this, but you can create from template github
   environmentFile: string;
   stateStorage: string;
   compute: Compute;

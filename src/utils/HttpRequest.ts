@@ -29,7 +29,7 @@ class HttpRequest {
 
     instance.interceptors.response.use(
       (response) => response.data || response,
-      (error) => Promise.reject(error.response.data || error.response),
+      (error) => Promise.reject(error.response),
     );
 
     return instance;

@@ -1,3 +1,4 @@
+/* eslint-disable class-methods-use-this */
 import inquirer, { Answers, QuestionCollection } from "inquirer";
 
 class Prompt {
@@ -13,6 +14,19 @@ class Prompt {
     } catch (error) {
       return Promise.reject(error);
     }
+  }
+
+  private required(value: string, message: string) {
+    if (value.trim() === "") {
+      return message;
+    }
+    return true;
+  }
+
+  get validations() {
+    return {
+      required: this.required,
+    };
   }
 }
 
