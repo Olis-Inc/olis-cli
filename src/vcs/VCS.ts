@@ -1,5 +1,5 @@
 import { SyncEnvRequest, VCSProvider } from "@src/types/vcs";
-import Prompt, { QuestionCollection } from "@src/utils/Prompt";
+import Prompt from "@src/utils/Prompt";
 import Storage from "@src/utils/Storage";
 import {
   VCS_ACCESS_TOKEN_KEY,
@@ -8,7 +8,16 @@ import {
   VCS_REPOSITORY_OWNER,
   VCS_REPOSITORY_URL,
 } from "@src/utils/constants";
+import { PromptQuestion } from "@src/types/prompt";
 import GitHub from "./GitHub";
+
+interface VCSInput {
+  name: string;
+  provider: string;
+  owner: string;
+  private: boolean;
+  accessToken: string;
+}
 
 class VCS {
   private static secureStorage = new Storage("secrets");
@@ -17,11 +26,13 @@ class VCS {
 
   private static prompt = new Prompt();
 
-  private static getSetupQuestions(name: string): QuestionCollection {
+  private static getSetupQuestions(
+    name: string,
+  ): Array<PromptQuestion<VCSInput>> {
     return [
       {
+        type: "input",
         name: "name",
-        type: "string",
         message: "Repository name:",
         default: name,
       },
@@ -34,7 +45,7 @@ class VCS {
       },
       {
         name: "owner",
-        type: "string",
+        type: "input",
         message: "Owner:",
         default: this.appStorage.get(VCS_REPOSITORY_OWNER),
         validate: (value) =>

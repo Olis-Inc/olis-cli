@@ -15,7 +15,7 @@ class Docker implements BuildProvider {
   async makeBuildFile(framework: Framework): Promise<void> {
     try {
       const data = await this.api.get(
-        `/docker/${framework.toLowerCase()}/Dockerfile`,
+        `/vcs/docker/${framework.toLowerCase()}/Dockerfile`,
       );
       await File.writeTo("Dockerfile", data);
       return Promise.resolve();

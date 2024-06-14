@@ -1,18 +1,14 @@
+import { ResourceConfig } from "./resource";
+
 export enum Environment {
   local = "local",
   staging = "staging",
   production = "production",
 }
 
-type MiddlewareType = "database" | "cache" | "search" | "messaging" | "storage";
-
-type Compute = {
-  [key in Environment]?: string;
+export type ComputeConfig = {
+  [key in Exclude<Environment, Environment.local>]: string;
 };
-
-type Middleware = {
-  [key in MiddlewareType]?: string;
-} & { type: string; default?: string };
 
 export enum Framework {
   Javascript = "Javascript",
@@ -23,17 +19,19 @@ export enum StateStorage {
   local = "local",
 }
 
+export type Architecture = "none" | string;
+
 export interface AppConfig {
-  framework?: string;
+  framework?: Framework;
   name: string;
   hostname?: string;
   subdomain?: string;
   // template: string; // Not quite ready for this, but you can create from template github
   environmentFile: string;
   stateStorage: StateStorage;
-  compute: Compute;
-  architecture?: string;
+  compute: ComputeConfig;
+  architecture: Architecture;
   infrastructure: boolean;
-  middleware: Array<Middleware>;
+  resources: ResourceConfig;
   manageRepository: boolean;
 }

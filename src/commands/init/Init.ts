@@ -109,12 +109,12 @@ class Init extends BaseCommand {
       }
 
       const config: Partial<AppConfig> = {
-        name,
         ...answers,
+        name,
       };
 
       await this.config.update(config);
-      await this.buildManager.makeBuildFile(config.framework as Framework);
+      // await this.buildManager.makeBuildFile(config.framework as Framework);
 
       // Use chalk
       this.logger.log("Initialization successful! 💫");

@@ -1,20 +1,17 @@
 /* eslint-disable class-methods-use-this */
-import inquirer, {
-  Answers,
-  QuestionCollection,
-  DistinctQuestion,
-} from "inquirer";
+import { PromptQuestion } from "@src/types/prompt";
+import inquirer from "inquirer";
 
 class Prompt {
   private prompt = inquirer.createPromptModule();
 
-  async ask(questions: QuestionCollection): Promise<Answers> {
+  async ask<T>(questions: Array<PromptQuestion<T>>): Promise<T> {
     try {
       const answers = await this.prompt(questions);
       const filteredAnswers = Object.fromEntries(
         Object.entries(answers).filter(([, value]) => value !== ""),
       );
-      return Promise.resolve(filteredAnswers);
+      return Promise.resolve(filteredAnswers as T);
     } catch (error) {
       return Promise.reject(error);
     }
@@ -34,7 +31,7 @@ class Prompt {
   }
 
   private required(value: string, message: string) {
-    if (value.trim() === "") {
+    if (typeof value === "string" && value.trim() === "") {
       return message;
     }
     return true;
@@ -48,4 +45,3 @@ class Prompt {
 }
 
 export default Prompt;
-export { QuestionCollection, DistinctQuestion };

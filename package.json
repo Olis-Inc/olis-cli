@@ -24,6 +24,7 @@
     "configstore": "^6.0.0",
     "figlet": "^1.7.0",
     "inquirer": "^8.0.0",
+    "joi": "^17.13.1",
     "js-yaml": "^4.1.0",
     "libsodium-wrappers": "^0.7.13",
     "ora": "^8.0.1",

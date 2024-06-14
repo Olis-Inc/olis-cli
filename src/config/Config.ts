@@ -1,15 +1,19 @@
 import Path from "@src/utils/Path";
 import File from "@src/utils/File";
 import { APP_FOLDER } from "@src/utils/constants";
-import { DistinctQuestion } from "@src/utils/Prompt";
+import { PromptQuestion } from "@src/types/prompt";
+import Validator from "@src/utils/Validator";
 import { AppConfig, Framework, StateStorage } from "../types/config";
 import Logger from "../utils/Logger";
 import Storage from "../utils/Storage";
+import { configSchema } from "./validations.schema";
 
 class Config {
   private storage = new Storage();
 
   private logger = new Logger();
+
+  private validator = new Validator();
 
   private baseConfig: AppConfig = {
     framework: undefined,
@@ -18,10 +22,13 @@ class Config {
     subdomain: undefined,
     environmentFile: ".env",
     stateStorage: StateStorage.local,
-    compute: {},
-    architecture: undefined,
+    compute: {
+      staging: "none",
+      production: "none",
+    },
+    architecture: "none",
     infrastructure: true,
-    middleware: [],
+    resources: {},
     manageRepository: true,
   };
 
@@ -32,10 +39,14 @@ class Config {
     `${Path.cwd}/olisconfig.yml`,
   ];
 
+  validate(config = this.getConfig()) {
+    return this.validator.validate(configSchema, config);
+  }
+
   // eslint-disable-next-line class-methods-use-this
   getSetupQuestions(
     defaults: Partial<AppConfig>,
-  ): Array<DistinctQuestion & { name: keyof AppConfig }> {
+  ): Array<PromptQuestion<AppConfig>> {
     return [
       {
         name: "framework",
@@ -105,6 +116,11 @@ class Config {
 
   get(key: keyof AppConfig) {
     return this.getConfig()[key];
+  }
+
+  async set(key: keyof AppConfig, value: never) {
+    const data = this.getConfig();
+    data[key] = value;
   }
 }
 

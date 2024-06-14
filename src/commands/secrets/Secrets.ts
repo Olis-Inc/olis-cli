@@ -39,6 +39,9 @@ class Secrets extends BaseCommand {
     this.command.addCommand(addCommand);
     this.command.addCommand(updateCommand);
     this.command.addCommand(deleteCommand);
+    // Maybe add "import" to deal with not exposing company secrets to newbies
+    // Solution: include secrets in sync to github. Secrets will also be checked when validating env
+    // If the secrets are part of an env, you can write them to file as [redacted], but when firing to vcs, the one in storage replaces it
   }
 
   private add(name: string, value: string) {

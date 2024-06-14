@@ -3,9 +3,18 @@ import { Environment } from "@src/types/config";
 import VCS from "@src/vcs";
 import File from "@src/utils/File";
 import { SyncEnvRequest } from "@src/types/vcs";
+import {
+  camelCaseToSnakeCase,
+  jsonToKeyValuePairs,
+  keyValuePairsToJSON,
+} from "@src/utils/misc";
+import Validator from "@src/utils/Validator";
+import { envSchema } from "./validations.schema";
 import BaseCommand from "../BaseCommand";
 
 class Env extends BaseCommand {
+  private validator = new Validator();
+
   constructor() {
     super("env");
 
@@ -29,12 +38,20 @@ class Env extends BaseCommand {
     this.command.addCommand(syncCommand);
   }
 
-  private async sync(options: string) {
+  validate(config = this.config.getConfig()) {
+    const schema = envSchema();
+
+    for (const environment of Object.values(Environment)) {
+      this.validator.validate(schema, this.getVariables(environment), config);
+    }
+  }
+
+  async sync(options: string = "production,staging") {
     try {
       const environments = options
         .split(",")
         .map((env) => env.trim() as Environment)
-        .filter((env) => Object.keys(Environment).includes(env.toString()));
+        .filter((env) => Object.values(Environment).includes(env));
 
       if (environments.length === 0) {
         throw new Error("Please provide valid environment(s)");
@@ -100,6 +117,65 @@ class Env extends BaseCommand {
     } catch (error) {
       this.logger.error(`Could not sync env variables, ${error}`);
     }
+  }
+
+  getEnvFilePath(env: Environment = Environment.local) {
+    let envFile = this.config.get("environmentFile");
+    if (!envFile) {
+      throw new Error("Environment file not setup");
+    }
+
+    if (env === Environment.staging) {
+      envFile = `${envFile}.staging`;
+    } else if (env === Environment.production) {
+      envFile = `${envFile}.production`;
+    }
+
+    if (!File.fileExists(envFile as string)) {
+      throw new Error("Environment variable file does not exist");
+    }
+
+    return envFile as string;
+  }
+
+  getVariables(env: Environment = Environment.local, toJSON = true) {
+    const envFile = this.getEnvFilePath(env);
+    let contents = File.readFile(envFile as string);
+
+    if (toJSON) {
+      contents = keyValuePairsToJSON(contents);
+    }
+    return contents;
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  getKey(prefix: string, key: string) {
+    return camelCaseToSnakeCase(`${prefix}_${key}`).toUpperCase();
+  }
+
+  private transformKeys(json: Record<string, unknown>, prefix: string) {
+    return Object.keys(json).reduce<Record<string, unknown>>((obj, key) => {
+      const envKey = this.getKey(prefix, key);
+      // eslint-disable-next-line no-param-reassign
+      obj[envKey] = json[key];
+      return obj;
+    }, {});
+  }
+
+  async save(
+    content: Record<string, unknown>,
+    prefix: string,
+    env: Environment = Environment.local,
+  ) {
+    const envFile = this.getEnvFilePath(env);
+    const oldContent = keyValuePairsToJSON(File.readFile(envFile as string));
+    const newContent = this.transformKeys(content, prefix);
+
+    const envContent = jsonToKeyValuePairs({
+      ...oldContent,
+      ...newContent,
+    });
+    await File.writeTo(envFile, envContent);
   }
 }
 
