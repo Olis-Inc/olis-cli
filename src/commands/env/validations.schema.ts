@@ -1,10 +1,10 @@
 /* eslint-disable import/prefer-default-export */
-import { envSchema as resourcesEnvSchema } from "@src/commands/resources/validations.schema";
+import { envSchemaMap as resourcesEnvSchemaMap } from "@src/commands/resources/validations.schema";
 import { ValidationOperator } from "@src/utils/Validator";
 
 const envSchema = () =>
   ValidationOperator.object({
-    ...resourcesEnvSchema(),
+    ...resourcesEnvSchemaMap(),
   }).unknown(true); // Allow unknown because secrets can be included too
 
 export { envSchema };

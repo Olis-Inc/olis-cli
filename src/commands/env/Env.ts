@@ -38,11 +38,9 @@ class Env extends BaseCommand {
     this.command.addCommand(syncCommand);
   }
 
-  validate(config = this.config.getConfig()) {
-    const schema = envSchema();
-
+  validate(config = this.config.getConfig(), schema = envSchema) {
     for (const environment of Object.values(Environment)) {
-      this.validator.validate(schema, this.getVariables(environment), config);
+      this.validator.validate(schema(), this.getVariables(environment), config);
     }
   }
 

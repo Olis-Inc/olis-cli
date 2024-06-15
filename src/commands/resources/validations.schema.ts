@@ -9,7 +9,7 @@ import {
 import { STRICTLY_FULLY_MANAGED_PROVIDERS } from "@src/utils/constants";
 import resources from ".";
 
-const envSchema = () =>
+const envSchemaMap = () =>
   Object.values(ResourceType).reduce<SchemaMap>((acc, resource) => {
     const schema = resources.getResource(resource).envSchemaMap;
     return {
@@ -62,4 +62,4 @@ const configSchema = ValidationOperator.object<
   }),
 );
 
-export { envSchema, configSchema };
+export { envSchemaMap, configSchema };
