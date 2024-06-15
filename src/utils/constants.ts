@@ -8,6 +8,9 @@ const VCS_REPOSITORY = "vcs_repository";
 const VCS_REPOSITORY_URL = "vcs_repository_url";
 const VCS_REPOSITORY_OWNER = "vcs_repository_owner";
 
+// Compute
+const STRICTLY_FULLY_MANAGED_PROVIDERS = ["vercel", "heroku"];
+
 export {
   APP_FOLDER,
   VCS_ACCESS_TOKEN_KEY,
@@ -15,4 +18,5 @@ export {
   VCS_REPOSITORY_URL,
   VCS_REPOSITORY_OWNER,
   VCS_PROVIDER,
+  STRICTLY_FULLY_MANAGED_PROVIDERS,
 };

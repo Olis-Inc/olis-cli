@@ -58,7 +58,7 @@ class Mongo implements Resource<MongoInputVariables> {
     envConfig: ResourceItemConfigEnv,
     variables: Record<string, unknown> = {},
     filterFxn: ((item: Q, i: number) => boolean) | undefined = undefined,
-  ): Promise<MongoInputVariables> {
+  ): Promise<{ answers: MongoInputVariables; inSync: boolean }> {
     try {
       let questions: Qs = [
         {
@@ -139,16 +139,18 @@ class Mongo implements Resource<MongoInputVariables> {
         questions = questions.filter(filterFxn);
       }
       const answers = await this.prompt.ask(questions);
+      const inSync = Object.keys(answers).length === 0;
+      const copy = JSON.parse(JSON.stringify(answers));
 
       // Save private and public keys to secrets
-      this.secureStorage.set(MONGO_PUBLIC_KEY, answers.publicKey);
-      this.secureStorage.set(MONGO_PRIVATE_KEY, answers.privateKey);
+      this.secureStorage.set(MONGO_PUBLIC_KEY, copy.publicKey);
+      this.secureStorage.set(MONGO_PRIVATE_KEY, copy.privateKey);
 
       // Unset them so as not to include them in save
       delete answers.publicKey;
       delete answers.privateKey;
 
-      return Promise.resolve(answers);
+      return Promise.resolve({ answers, inSync });
     } catch (error) {
       return Promise.reject(error);
     }

@@ -6,6 +6,7 @@ import {
   ResourceItemManagementType,
   ResourceType,
 } from "@src/types/resource";
+import { STRICTLY_FULLY_MANAGED_PROVIDERS } from "@src/utils/constants";
 import resources from ".";
 
 const envSchema = () =>
@@ -17,6 +18,9 @@ const envSchema = () =>
     };
   }, {});
 
+const strictlyFullyManagedProvidersRegex = new RegExp(
+  `^[${STRICTLY_FULLY_MANAGED_PROVIDERS.join("|")}]`,
+);
 const configSchema = ValidationOperator.object<
   undefined,
   false,
@@ -28,10 +32,32 @@ const configSchema = ValidationOperator.object<
     env: ValidationOperator.object<undefined, false, ResourceItemConfigEnv>({
       staging: ValidationOperator.string()
         .required()
-        .valid(...Object.keys(ResourceItemManagementType)),
+        /*
+          If architecture.staging starts with item from strictly managed providers,
+          then resource config should be fully-managed as well,
+          otherwise, it can be an resource management type.
+          As an aside, none architecture just does nothing, and is good to test your setup
+        */
+        .when(ValidationOperator.ref("/compute.staging"), {
+          is: ValidationOperator.string().pattern(
+            strictlyFullyManagedProvidersRegex,
+          ),
+          then: ValidationOperator.valid(ResourceItemManagementType.managed),
+          otherwise: ValidationOperator.valid(
+            ...Object.keys(ResourceItemManagementType),
+          ),
+        }),
       production: ValidationOperator.string()
         .required()
-        .valid(...Object.keys(ResourceItemManagementType)),
+        .when(ValidationOperator.ref("/compute.production"), {
+          is: ValidationOperator.string().pattern(
+            strictlyFullyManagedProvidersRegex,
+          ),
+          then: ValidationOperator.valid(ResourceItemManagementType.managed),
+          otherwise: ValidationOperator.valid(
+            ...Object.keys(ResourceItemManagementType),
+          ),
+        }),
     }).required(),
   }),
 );

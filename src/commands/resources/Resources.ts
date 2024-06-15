@@ -155,7 +155,8 @@ class Resources extends BaseCommand {
       this.config.validate(config);
 
       const envConfig = await this.getEnvConfig();
-      const answers = await this.getResource(name).getInputVariables(envConfig);
+      const { answers } =
+        await this.getResource(name).getInputVariables(envConfig);
 
       // Save items
       await this.saveVariablesToEnv(name, answers);
@@ -176,19 +177,24 @@ class Resources extends BaseCommand {
       const variables = env.getVariables();
       this.config.validate(config);
 
-      const answers = await this.getResource(name).getInputVariables(
+      const { answers, inSync } = await this.getResource(
+        name,
+      ).getInputVariables(
         config.resources[name]!.env,
         variables,
         (q) => !q.default, // Filter items without a value yet
       );
 
-      if (Object.keys(answers).length === 0) {
-        this.logger.log("Already in sync!");
+      if (Object.keys(answers).length > 0) {
+        await this.saveVariablesToEnv(name, answers);
+      }
+
+      if (inSync) {
+        this.logger.success("Already in sync!");
         return;
       }
 
       // Save items
-      await this.saveVariablesToEnv(name, answers);
       await env.sync();
     } catch (error) {
       this.logger.error(error);

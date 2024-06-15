@@ -28,7 +28,7 @@ export interface Resource<T> {
     envConfig: ResourceItemConfigEnv,
     variables?: Record<string, unknown>,
     fxn?: (item: PromptQuestion<T>, i: number) => boolean,
-  ) => Promise<Partial<T>>;
+  ) => Promise<{ answers: Partial<T>; inSync: boolean }>;
   envSchemaMap: SchemaMap;
   buildInputVariableKeys: Array<keyof T>;
 }
