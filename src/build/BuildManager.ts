@@ -1,4 +1,8 @@
-import { BuildProvider, BuildProviderType } from "@src/types/build";
+import {
+  BuildCompose,
+  BuildProvider,
+  BuildProviderType,
+} from "@src/types/build";
 import { Framework } from "@src/types/config";
 import Docker from "./Docker";
 
@@ -21,6 +25,18 @@ class BuildManager {
 
   makeBuildFile(framework: Framework) {
     return this.provider.makeBuildFile(framework);
+  }
+
+  makeBuildComposeFile(content: BuildCompose, filePath?: string) {
+    return this.provider.makeBuildComposeFile(content, filePath);
+  }
+
+  runBuildComposeFile(name: string, filePath?: string) {
+    return this.provider.runBuildComposeFile(name, filePath);
+  }
+
+  destroyBuildComposeFile(name: string, filePath?: string) {
+    return this.provider.destroyBuildComposeFile(name, filePath);
   }
 }
 

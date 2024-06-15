@@ -46,7 +46,10 @@ class Env extends BaseCommand {
     }
   }
 
-  async sync(options: string = "production,staging") {
+  async sync(
+    options: string = Object.keys(Environment).join(","),
+    warn = true,
+  ) {
     try {
       const environments = options
         .split(",")
@@ -104,12 +107,14 @@ class Env extends BaseCommand {
       }, {});
 
       // Warn
-      const proceed = await this.prompt.warn(
-        `You are about to replace existing values for ${environments.join(" and ")} remotely. Do you want to continue?`,
-      );
-      if (!proceed) {
-        this.logger.log("Sync aborted");
-        return;
+      if (warn) {
+        const proceed = await this.prompt.warn(
+          `You are about to replace existing values for ${environments.join(" and ")} remotely. Do you want to continue?`,
+        );
+        if (!proceed) {
+          this.logger.log("Sync aborted");
+          return;
+        }
       }
 
       await VCS.syncEnv(payload);
@@ -166,15 +171,33 @@ class Env extends BaseCommand {
     content: Record<string, unknown>,
     prefix: string,
     env: Environment = Environment.local,
+    override = false,
   ) {
     const envFile = this.getEnvFilePath(env);
-    const oldContent = keyValuePairsToJSON(File.readFile(envFile as string));
     const newContent = this.transformKeys(content, prefix);
+    let oldContent = {};
+    if (!override) {
+      oldContent = keyValuePairsToJSON(File.readFile(envFile as string));
+    }
 
     const envContent = jsonToKeyValuePairs({
       ...oldContent,
       ...newContent,
     });
+    await File.writeTo(envFile, envContent);
+  }
+
+  async delete(prefix: string, env: Environment = Environment.local) {
+    const envFile = this.getEnvFilePath(env);
+    const content = keyValuePairsToJSON(File.readFile(envFile as string));
+
+    for (const key of Object.keys(content)) {
+      if (key.startsWith(prefix.toUpperCase())) {
+        delete content[key];
+      }
+    }
+
+    const envContent = jsonToKeyValuePairs(content);
     await File.writeTo(envFile, envContent);
   }
 }

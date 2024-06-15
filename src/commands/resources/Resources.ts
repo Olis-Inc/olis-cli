@@ -5,7 +5,8 @@ import {
   ResourceItemManagementType,
   ResourceType,
 } from "@src/types/resource";
-import { Environment } from "@src/types/config";
+import { AppConfig, Environment } from "@src/types/config";
+import { BuildCompose } from "@src/types/build";
 import BaseCommand from "../BaseCommand";
 import Mongo from "./Mongo";
 import env from "../env";
@@ -74,6 +75,42 @@ class Resources extends BaseCommand {
     }
   }
 
+  // eslint-disable-next-line class-methods-use-this
+  private makeBuildComposeContent(config: AppConfig) {
+    return Object.keys(config.resources).reduce<BuildCompose>(
+      (acc, key) => {
+        const resourceConfig = config.resources[key as ResourceType]!;
+        const resource = this.getResource(key as ResourceType);
+
+        const variables = env.getVariables(Environment.local, true);
+        const port = variables[env.getKey(key, "port")] || resourceConfig.port;
+
+        acc.services[key] = {
+          image: `${key}:latest`,
+          container_name: `olis-${key}-${config.name}`,
+          ports: [`${port}:${port}`],
+          networks: [config.name],
+          environment: resource.buildInputVariableKeys
+            .map((varKey) => env.getKey(key, varKey))
+            .reduce<Record<string, string | number | boolean>>((acc, key) => {
+              acc[key] = variables[key];
+              return acc;
+            }, {}),
+        };
+        return acc;
+      },
+      {
+        version: "3.3",
+        services: {},
+        networks: {
+          [config.name]: {
+            internal: false,
+          },
+        },
+      },
+    );
+  }
+
   private async getEnvConfig() {
     return this.prompt.ask<ResourceItemConfigEnv>([
       {
@@ -99,6 +136,15 @@ class Resources extends BaseCommand {
     await Promise.all(
       Object.values(Environment).map((environment) =>
         env.save(variables, resource, environment),
+      ),
+    );
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  private async deleteVariablesFromEnv(resource: ResourceType) {
+    await Promise.all(
+      Object.values(Environment).map((environment) =>
+        env.delete(resource, environment),
       ),
     );
   }
@@ -149,25 +195,51 @@ class Resources extends BaseCommand {
     }
   }
 
-  private delete(name: string) {
+  private async delete(name: ResourceType) {
     try {
-      this.logger.log(name);
+      const config = this.config.getConfig();
+      this.config.validate(config);
+
       // Check resource to see if it exists
+      if (!config.resources[name]) {
+        throw new Error(`Resource ${name} does not exist in resources`);
+      }
+
+      // warn
+      const proceed = await this.prompt.warn(
+        "You are about to remove a resource from this project. All associated environment variables and configs will be lost permanently. Do you want to continue?",
+        false,
+      );
+      if (!proceed) {
+        return;
+      }
+
       // Delete resource for file system
-      // Save to config file
+      delete config.resources[name];
+      await Promise.all([
+        this.deleteVariablesFromEnv(name),
+        this.config.update(config),
+      ]);
+      await env.sync(undefined, false);
     } catch (error) {
       this.logger.error(error);
     }
   }
 
-  private start() {
+  private async start() {
     try {
-      this.config.validate();
+      const config = this.config.getConfig();
+      this.config.validate(config);
       env.validate();
-      this.logger.log("got her o");
       // Generate dockercompose file
-      // Save output to env file
-      // Call docker compose up
+      this.buildManager.makeBuildComposeFile(
+        this.makeBuildComposeContent(config),
+      );
+
+      // Call run build compose file
+      this.logger.log("Starting Resources...");
+      await this.buildManager.runBuildComposeFile(config.name);
+      this.logger.success("Resources are up and running! 🆙");
     } catch (error) {
       this.logger.error(
         `An error occurred, ${error}. Did you forget to run olis-cli resource sync?`,
@@ -176,8 +248,15 @@ class Resources extends BaseCommand {
   }
 
   private stop() {
-    this.logger.log("stop");
-    // Call docker compose down
+    try {
+      const config = this.config.getConfig();
+      this.config.validate(config);
+      this.logger.log("Stopping Resources...");
+      this.buildManager.destroyBuildComposeFile(config.name);
+      this.logger.success("Resources have been shut down 🔻");
+    } catch (error) {
+      this.logger.error(`An error occurred, ${error}`);
+    }
   }
 }
 

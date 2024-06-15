@@ -14,6 +14,14 @@ class File {
     return f.existsSync(filePath);
   }
 
+  // eslint-disable-next-line class-methods-use-this
+  private static ensureDirectoriesExist(filePath: string) {
+    const dir = path.dirname(filePath);
+    if (!f.existsSync(dir)) {
+      f.mkdirSync(dir, { recursive: true });
+    }
+  }
+
   private static readJsonFile(filePath: string) {
     try {
       const data = f.readFileSync(path.resolve(filePath), this.encoding);
@@ -103,6 +111,7 @@ class File {
 
   static async writeToFile(filePath: string, data: Record<string, unknown>) {
     try {
+      this.ensureDirectoriesExist(filePath);
       const extension = path.extname(filePath);
       const name = path.basename(filePath);
 

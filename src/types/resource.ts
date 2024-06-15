@@ -30,4 +30,5 @@ export interface Resource<T> {
     fxn?: (item: PromptQuestion<T>, i: number) => boolean,
   ) => Promise<Partial<T>>;
   envSchemaMap: SchemaMap;
+  buildInputVariableKeys: Array<keyof T>;
 }
