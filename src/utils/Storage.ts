@@ -19,6 +19,10 @@ class Storage {
   delete(key: string) {
     return this.store.delete(key);
   }
+
+  get all() {
+    return this.store.all;
+  }
 }
 
 export default Storage;

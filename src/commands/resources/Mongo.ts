@@ -12,9 +12,8 @@ import Storage from "@src/utils/Storage";
 import { SchemaMap, ValidationOperator } from "@src/utils/Validator";
 import env from "../env";
 
-const MONGO_PUBLIC_KEY = "mongo_public_key";
-const MONGO_PRIVATE_KEY = "mongo_private_key";
-const MONGO_ORG_ID = "mongo_org_id";
+const MONGO_PUBLIC_KEY = "MONGO_PUBLIC_KEY";
+const MONGO_PRIVATE_KEY = "MONGO_PRIVATE_KEY";
 
 export interface MongoInputVariables {
   hostname: string;
@@ -105,9 +104,7 @@ class Mongo implements Resource<MongoInputVariables> {
           type: "password",
           name: "privateKey",
           message: "Private Key:",
-          default:
-            variables.MONGO_PRIVATE_KEY ||
-            this.secureStorage.get(MONGO_PRIVATE_KEY),
+          default: variables[MONGO_PRIVATE_KEY],
           validate: (value) =>
             this.prompt.validations.required(
               value,
@@ -118,9 +115,7 @@ class Mongo implements Resource<MongoInputVariables> {
           type: "password",
           name: "publicKey",
           message: "Public Key:",
-          default:
-            variables.MONGO_PUBLIC_KEY ||
-            this.secureStorage.get(MONGO_PUBLIC_KEY),
+          default: variables[MONGO_PUBLIC_KEY],
           validate: (value) =>
             this.prompt.validations.required(
               value,
@@ -131,8 +126,7 @@ class Mongo implements Resource<MongoInputVariables> {
           type: "input",
           name: "orgId",
           message: "Organization Id:",
-          default:
-            variables.MONGO_ORG_ID || this.secureStorage.get(MONGO_ORG_ID),
+          default: variables.MONGO_ORG_ID,
           validate: (value) =>
             this.prompt.validations.required(
               value,
@@ -144,9 +138,16 @@ class Mongo implements Resource<MongoInputVariables> {
       if (filterFxn) {
         questions = questions.filter(filterFxn);
       }
-
       const answers = await this.prompt.ask(questions);
+
       // Save private and public keys to secrets
+      this.secureStorage.set(MONGO_PUBLIC_KEY, answers.publicKey);
+      this.secureStorage.set(MONGO_PRIVATE_KEY, answers.privateKey);
+
+      // Unset them so as not to include them in save
+      delete answers.publicKey;
+      delete answers.privateKey;
+
       return Promise.resolve(answers);
     } catch (error) {
       return Promise.reject(error);

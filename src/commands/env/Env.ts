@@ -47,10 +47,13 @@ class Env extends BaseCommand {
   }
 
   async sync(
-    options: string = Object.keys(Environment).join(","),
+    options: string = Object.keys(Environment)
+      .filter((env) => env !== Environment.local)
+      .join(","),
     warn = true,
   ) {
     try {
+      const secrets = jsonToKeyValuePairs(this.secureStorage.all);
       const environments = options
         .split(",")
         .map((env) => env.trim() as Environment)
@@ -102,7 +105,7 @@ class Env extends BaseCommand {
 
         return {
           ...request,
-          [env]: File.readFile(file),
+          [env]: `${File.readFile(file)}\n${secrets}`,
         };
       }, {});
 
@@ -143,14 +146,14 @@ class Env extends BaseCommand {
     return envFile as string;
   }
 
-  getVariables(env: Environment = Environment.local, toJSON = true) {
+  getVariables(env: Environment = Environment.local) {
     const envFile = this.getEnvFilePath(env);
-    let contents = File.readFile(envFile as string);
+    const contents = keyValuePairsToJSON(File.readFile(envFile as string));
 
-    if (toJSON) {
-      contents = keyValuePairsToJSON(contents);
-    }
-    return contents;
+    return {
+      ...contents,
+      ...this.secureStorage.all, // Get Secrets
+    };
   }
 
   // eslint-disable-next-line class-methods-use-this

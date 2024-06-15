@@ -82,7 +82,7 @@ class Resources extends BaseCommand {
         const resourceConfig = config.resources[key as ResourceType]!;
         const resource = this.getResource(key as ResourceType);
 
-        const variables = env.getVariables(Environment.local, true);
+        const variables = env.getVariables(Environment.local);
         const port = variables[env.getKey(key, "port")] || resourceConfig.port;
 
         acc.services[key] = {
