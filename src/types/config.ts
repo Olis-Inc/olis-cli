@@ -1,3 +1,4 @@
+import { ComputeConfig } from "./compute";
 import { ResourceConfig } from "./resource";
 
 export enum Environment {
@@ -5,10 +6,6 @@ export enum Environment {
   staging = "staging",
   production = "production",
 }
-
-export type ComputeConfig = {
-  [key in Exclude<Environment, Environment.local>]: string;
-};
 
 export enum Framework {
   Javascript = "Javascript",

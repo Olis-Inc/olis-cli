@@ -161,20 +161,23 @@ class Resources extends BaseCommand {
   private async add(name: ResourceType) {
     try {
       const config = this.config.getConfig();
-      this.config.validate(config);
-
       const envConfig = await this.getEnvConfig();
       const { answers } =
         await this.getResource(name).getInputVariables(envConfig);
 
-      // Save items
-      await this.saveVariablesToEnv(name, answers);
+      // Set config
       config.resources[name] = {
         env: envConfig,
         port: answers.port!,
       };
 
-      await Promise.all([this.config.update(config), env.sync()]);
+      // Validate config first before save
+      this.config.validate(config);
+
+      // Save
+      await this.saveVariablesToEnv(name, answers);
+      await env.sync();
+      await this.config.update(config);
     } catch (error) {
       this.logger.error(error);
     }

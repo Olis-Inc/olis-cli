@@ -19,4 +19,12 @@ const jsonToKeyValuePairs = (content: Record<string, unknown>) =>
 const camelCaseToSnakeCase = (str: string) =>
   str.replace(/([A-Z])/g, "_$1").toLowerCase();
 
-export { keyValuePairsToJSON, camelCaseToSnakeCase, jsonToKeyValuePairs };
+const toSentenceCase = (str: string) =>
+  str.charAt(0).toUpperCase() + str.substring(1);
+
+export {
+  keyValuePairsToJSON,
+  camelCaseToSnakeCase,
+  jsonToKeyValuePairs,
+  toSentenceCase,
+};

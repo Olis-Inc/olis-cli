@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import { program } from "commander";
 import resources from "@src/commands/resources";
+import compute from "@src/commands/compute";
 import init from "../src/commands/init";
 import secrets from "../src/commands/secrets";
 import deployment from "../src/commands/deployment";
@@ -16,6 +17,7 @@ program
   .addCommand(secrets.getCommand())
   .addCommand(deployment.getCommand())
   .addCommand(env.getCommand())
+  .addCommand(compute.getCommand())
   .addCommand(resources.getCommand());
 
 program.parse(process.argv);

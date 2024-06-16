@@ -96,6 +96,7 @@ class Config {
       const { filePath } = this;
 
       if (filePath) {
+        // Handle other types that don't come as json
         data = File.readFile(filePath) as AppConfig;
       }
 

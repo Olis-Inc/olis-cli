@@ -1,4 +1,4 @@
-import { configSchema } from "./validations.schema";
+import Compute from "./Compute";
 
-// eslint-disable-next-line import/prefer-default-export
-export { configSchema };
+const compute = new Compute();
+export default compute;

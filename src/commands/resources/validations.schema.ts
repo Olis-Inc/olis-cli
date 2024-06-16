@@ -6,7 +6,7 @@ import {
   ResourceItemManagementType,
   ResourceType,
 } from "@src/types/resource";
-import { STRICTLY_FULLY_MANAGED_PROVIDERS } from "@src/utils/constants";
+import { STRICTLY_FULLY_MANAGED_PROVIDERS_REGEX } from "@src/utils/constants";
 import resources from ".";
 
 const envSchemaMap = () =>
@@ -18,9 +18,6 @@ const envSchemaMap = () =>
     };
   }, {});
 
-const strictlyFullyManagedProvidersRegex = new RegExp(
-  `^[${STRICTLY_FULLY_MANAGED_PROVIDERS.join("|")}]`,
-);
 const configSchema = ValidationOperator.object<
   undefined,
   false,
@@ -40,7 +37,7 @@ const configSchema = ValidationOperator.object<
         */
         .when(ValidationOperator.ref("/compute.staging"), {
           is: ValidationOperator.string().pattern(
-            strictlyFullyManagedProvidersRegex,
+            STRICTLY_FULLY_MANAGED_PROVIDERS_REGEX,
           ),
           then: ValidationOperator.valid(ResourceItemManagementType.managed),
           otherwise: ValidationOperator.valid(
@@ -51,7 +48,7 @@ const configSchema = ValidationOperator.object<
         .required()
         .when(ValidationOperator.ref("/compute.production"), {
           is: ValidationOperator.string().pattern(
-            strictlyFullyManagedProvidersRegex,
+            STRICTLY_FULLY_MANAGED_PROVIDERS_REGEX,
           ),
           then: ValidationOperator.valid(ResourceItemManagementType.managed),
           otherwise: ValidationOperator.valid(

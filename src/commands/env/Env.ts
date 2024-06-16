@@ -40,7 +40,11 @@ class Env extends BaseCommand {
 
   validate(config = this.config.getConfig(), schema = envSchema) {
     for (const environment of Object.values(Environment)) {
-      this.validator.validate(schema(), this.getVariables(environment), config);
+      this.validator.validate(
+        schema(config),
+        this.getVariables(environment),
+        config,
+      );
     }
   }
 
