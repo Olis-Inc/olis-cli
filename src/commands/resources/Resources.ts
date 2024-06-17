@@ -7,11 +7,11 @@ import {
 } from "@src/types/resource";
 import { AppConfig, Environment } from "@src/types/config";
 import { BuildCompose } from "@src/types/build";
-import Validator, { ValidationOperator } from "@src/utils/Validator";
+import Validator from "@src/utils/Validator";
 import BaseCommand from "../BaseCommand";
 import Mongo from "./Mongo";
 import env from "../env";
-import { envSchemaMap } from "./validations.schema";
+import { envSchema } from "./validations.schema";
 
 class Resources extends BaseCommand {
   private mongo = new Mongo();
@@ -23,11 +23,6 @@ class Resources extends BaseCommand {
 
     this.command.description("Manage your olis-cli resources");
     this.init();
-  }
-
-  // eslint-disable-next-line class-methods-use-this
-  private envValidationSchema() {
-    return ValidationOperator.object(envSchemaMap()).unknown(true);
   }
 
   private init() {
@@ -248,7 +243,7 @@ class Resources extends BaseCommand {
     try {
       const config = this.config.getConfig();
       this.config.validate(config);
-      env.validate(config, this.envValidationSchema);
+      env.validate(config, envSchema);
 
       // Generate dockercompose file
       this.buildManager.makeBuildComposeFile(

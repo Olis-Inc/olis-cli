@@ -1,4 +1,3 @@
-import config from "@src/config";
 import { ComputeProvider } from "@src/types/compute";
 import { AppConfig } from "@src/types/config";
 import { PromptQuestion } from "@src/types/prompt";
@@ -15,18 +14,16 @@ const VERCEL_ACCESS_TOKEN = "VERCEL_ACCESS_TOKEN";
 type Q = PromptQuestion<any>;
 
 class Providers {
-  config = config;
+  static secureStorage = new Storage("secrets");
 
-  secureStorage = new Storage("secrets");
-
-  private prompt = new Prompt();
+  private static prompt = new Prompt();
 
   // eslint-disable-next-line class-methods-use-this
-  private getProviderId(computeId: string) {
+  private static getProviderId(computeId: string) {
     return computeId.split(":")[0] as ComputeProvider;
   }
 
-  private getCredentialKeys(computeId: string) {
+  private static getCredentialKeys(computeId: string) {
     const providerId = this.getProviderId(computeId);
 
     switch (providerId) {
@@ -44,7 +41,7 @@ class Providers {
     }
   }
 
-  async getCredentials(
+  static async getCredentials(
     envCompute: { staging: string; production: string },
     filterFxn: ((item: Q, i: number) => boolean) | undefined = undefined,
   ) {
@@ -83,7 +80,7 @@ class Providers {
     }
   }
 
-  envSchemaMap(config: AppConfig) {
+  static getEnvSchemaMap(config: AppConfig) {
     return [
       ...this.getCredentialKeys(config.compute.staging),
       ...this.getCredentialKeys(config.compute.production),

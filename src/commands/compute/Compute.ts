@@ -1,25 +1,16 @@
 import { Command } from "commander";
-import { AppConfig } from "@src/types/config";
-import { ValidationOperator } from "@src/utils/Validator";
 import { ComputeConfig, ComputeProvider } from "@src/types/compute";
 import BaseCommand from "../BaseCommand";
 import env from "../env";
 import Providers from "./Providers";
+import { envSchema } from "./validations.schema";
 
 class Compute extends BaseCommand {
-  providers = new Providers();
-
   constructor() {
     super("compute");
 
     this.command.description("Manage your olis-cli compute instances");
     this.init();
-  }
-
-  private envValidationSchema(config: AppConfig) {
-    return ValidationOperator.object(
-      this.providers.envSchemaMap(config),
-    ).unknown(true);
   }
 
   private init() {
@@ -111,7 +102,7 @@ class Compute extends BaseCommand {
     try {
       const config = this.config.getConfig();
       const envCompute = await this.getEnvCompute(compute);
-      await this.providers.getCredentials(envCompute);
+      await Providers.getCredentials(envCompute);
 
       config.compute.production = envCompute.production;
       config.compute.staging = envCompute.staging;
@@ -130,7 +121,7 @@ class Compute extends BaseCommand {
       const config = this.config.getConfig();
       this.config.validate(config);
 
-      const { inSync } = await this.providers.getCredentials(
+      const { inSync } = await Providers.getCredentials(
         config.compute,
         (q) => !q.default, // Filter items without a value yet
       );
@@ -174,7 +165,7 @@ class Compute extends BaseCommand {
     try {
       const config = this.config.getConfig();
       this.config.validate(config);
-      env.validate(config, () => this.envValidationSchema(config));
+      env.validate(config, envSchema);
       this.logger.success("Compute seems perfect!");
     } catch (error) {
       this.logger.error(
