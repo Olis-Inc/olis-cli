@@ -1,4 +1,4 @@
-import { SchemaMap, ValidationOperator } from "@src/utils/Validator";
+import { ValidationOperator } from "@src/utils/Validator";
 import {
   ResourceConfig,
   ResourceItemConfig,
@@ -7,16 +7,21 @@ import {
   ResourceType,
 } from "@src/types/resource";
 import { STRICTLY_FULLY_MANAGED_PROVIDERS_REGEX } from "@src/utils/constants";
+import { AppConfig } from "@src/types/config";
 import resources from ".";
 
-const envSchemaMap = () =>
-  Object.values(ResourceType).reduce<SchemaMap>((acc, resource) => {
-    const schema = resources.getResource(resource).envSchemaMap;
-    return {
-      ...acc,
-      ...schema,
-    };
-  }, {});
+const envSchema = (config: AppConfig) =>
+  Object.keys(config.resources).reduce<ValidationOperator.ObjectSchema>(
+    (acc, resource) => {
+      const schema = resources
+        .getResource(resource as ResourceType)
+        .getEnvSchemaMap(config);
+      return acc.keys({
+        ...schema,
+      });
+    },
+    ValidationOperator.object().unknown(true),
+  );
 
 const configSchema = ValidationOperator.object<
   undefined,
@@ -59,4 +64,4 @@ const configSchema = ValidationOperator.object<
   }),
 );
 
-export { envSchemaMap, configSchema };
+export { configSchema, envSchema };

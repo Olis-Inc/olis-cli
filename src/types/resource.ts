@@ -1,5 +1,5 @@
 import { SchemaMap } from "@src/utils/Validator";
-import { Environment } from "./config";
+import { AppConfig, Environment } from "./config";
 import { PromptQuestion } from "./prompt";
 
 export enum ResourceType {
@@ -29,6 +29,6 @@ export interface Resource<T> {
     variables?: Record<string, unknown>,
     fxn?: (item: PromptQuestion<T>, i: number) => boolean,
   ) => Promise<{ answers: Partial<T>; inSync: boolean }>;
-  envSchemaMap: SchemaMap;
+  getEnvSchemaMap: (config: AppConfig) => SchemaMap;
   buildInputVariableKeys: Array<keyof T>;
 }

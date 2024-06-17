@@ -10,6 +10,7 @@ import Logger from "@src/utils/Logger";
 import Prompt from "@src/utils/Prompt";
 import Storage from "@src/utils/Storage";
 import { SchemaMap, ValidationOperator } from "@src/utils/Validator";
+import { AppConfig } from "@src/types/config";
 import env from "../env";
 
 const MONGO_PUBLIC_KEY = "MONGO_PUBLIC_KEY";
@@ -58,7 +59,7 @@ class Mongo implements Resource<MongoInputVariables> {
     envConfig: ResourceItemConfigEnv,
     variables: Record<string, unknown> = {},
     filterFxn: ((item: Q, i: number) => boolean) | undefined = undefined,
-  ): Promise<{ answers: MongoInputVariables; inSync: boolean }> {
+  ): Promise<{ answers: Partial<MongoInputVariables>; inSync: boolean }> {
     try {
       let questions: Qs = [
         {
@@ -140,15 +141,16 @@ class Mongo implements Resource<MongoInputVariables> {
       }
       const answers = await this.prompt.ask(questions);
       const inSync = Object.keys(answers).length === 0;
-      const copy = JSON.parse(JSON.stringify(answers));
 
       // Save private and public keys to secrets
-      this.secureStorage.set(MONGO_PUBLIC_KEY, copy.publicKey);
-      this.secureStorage.set(MONGO_PRIVATE_KEY, copy.privateKey);
-
-      // Unset them so as not to include them in save
-      delete answers.publicKey;
-      delete answers.privateKey;
+      if (answers.publicKey) {
+        this.secureStorage.set(MONGO_PUBLIC_KEY, answers.publicKey);
+        delete answers.publicKey;
+      }
+      if (answers.privateKey) {
+        this.secureStorage.set(MONGO_PRIVATE_KEY, answers.privateKey);
+        delete answers.privateKey;
+      }
 
       return Promise.resolve({ answers, inSync });
     } catch (error) {
@@ -156,29 +158,21 @@ class Mongo implements Resource<MongoInputVariables> {
     }
   }
 
-  get envSchemaMap() {
+  getEnvSchemaMap(config: AppConfig) {
     return MONGO_INPUT_VARIABLE_KEYS.reduce<SchemaMap>((schema, key) => {
       const envKey = env.getKey(this.name, key);
+      const { production, staging } = config.resources[this.name]!.env;
+      const isManaged =
+        production === ResourceItemManagementType.managed ||
+        staging === ResourceItemManagementType.managed;
 
       switch (key) {
         case "orgId":
         case "privateKey":
         case "publicKey":
-          schema[envKey] = ValidationOperator.string().when(
-            "$resources.mongo.env.staging",
-            {
-              is: ResourceItemManagementType.managed,
-              then: ValidationOperator.required(),
-              otherwise: ValidationOperator.string().when(
-                "$resources.mongo.env.production",
-                {
-                  is: ResourceItemManagementType.managed,
-                  then: ValidationOperator.required(),
-                  otherwise: ValidationOperator.optional(),
-                },
-              ),
-            },
-          );
+          schema[envKey] = isManaged
+            ? ValidationOperator.string().required()
+            : ValidationOperator.string().optional();
           break;
 
         case "port":
